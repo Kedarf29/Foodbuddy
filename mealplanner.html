@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meal Planner</title>
+    <style>                                                                                                                                          
+        /* General styling */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background-color: #f0f2f5; color: #333; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background-color: #fff; width: 90%; max-width: 600px; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1); margin: 20px auto; }
+        h1 { text-align: center; color: #048061; }
+        h3 { margin-top: 20px; color: #048061; }
+        label, input, button { display: block; margin-top: 10px; width: 100%; }
+        label { font-weight: bold; margin-bottom: 5px; color: #555; }
+        input[type="number"], input[type="text"], input[type="checkbox"] { padding: 10px; border: 1px solid #ccc; border-radius: 4px; width: calc(100% - 22px); margin-bottom: 10px; }
+        button { background-color: #048061; color: #fff; padding: 12px; font-size: 16px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.3s; }
+        button:hover { background-color:#048061; }
+        #meal-results { margin-top: 20px; }
+        .result-item { background-color: #f7f9fc; border-left: 4px solid #048061; padding: 10px; margin-bottom: 10px; border-radius: 4px; }
+        .result-item p { margin: 5px 0; }
+        @media (max-width: 600px) { .container { padding: 15px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Meal Planner</h1>
+        <label>Enter the number of food items:
+            <input type="number" id="foodItemCount" min="1" placeholder="e.g., 3">
+        </label>
+        <button onclick="generateFoodItemInputs()">Set Number of Food Items</button>
+
+        <form id="mealForm" style="display: none;">
+            <div id="foodItemsContainer"></div>
+            <h3>User Constraints</h3>
+            <label>Calorie Limit: <input type="number" id="calorieLimit" placeholder="e.g., 500"></label>
+            <label>Vegan Only? <input type="checkbox" id="veganOnly"></label>
+            <button type="button" onclick="submitData()">Submit</button>
+        </form>
+
+        <div id="meal-results"></div>
+    </div>
+
+    <script>
+        let foodItems = [];
+
+        function generateFoodItemInputs() {
+            const foodItemCount = parseInt(document.getElementById("foodItemCount").value);
+            const foodItemsContainer = document.getElementById("foodItemsContainer");
+            foodItemsContainer.innerHTML = "";  
+
+            if (isNaN(foodItemCount) || foodItemCount <= 0) {
+                alert("Please enter a valid number of food items.");
+                return;
+            }
+
+            document.getElementById("mealForm").style.display = "block";
+
+            for (let i = 0; i < foodItemCount; i++) {
+                const foodItemHTML = `
+                    <h3>Food Item ${i + 1}</h3>
+                    <label>Food Name: <input type="text" name="name" placeholder="e.g., Salad"></label>
+                    <label>Calories: <input type="number" name="calories" placeholder="e.g., 150"></label>
+                    <label>Is Vegan? <input type="checkbox" name="isVegan"></label>
+                    <label>Protein (grams): <input type="number" name="protein" placeholder="e.g., 5"></label>
+                `;
+                foodItemsContainer.innerHTML += foodItemHTML;
+            }
+        }
+
+        class FoodItem {
+            constructor(name, calories, isVegan, protein) {
+                this.name = name;
+                this.calories = calories;
+                this.isVegan = isVegan;
+                this.protein = protein;
+            }
+        }
+
+        function knapsack(items, calorieLimit, veganOnly = false) {
+            const n = items.length;
+            const dp = Array.from({ length: n + 1 }, () => Array(calorieLimit + 1).fill(0));
+
+            for (let i = 1; i <= n; i++) {
+                for (let w = 0; w <= calorieLimit; w++) {
+                    if (items[i - 1].calories <= w) {
+                        dp[i][w] = Math.max(
+                            items[i - 1].protein + dp[i - 1][w - items[i - 1].calories],
+                            dp[i - 1][w]
+                        );
+                    } else {
+                        dp[i][w] = dp[i - 1][w];
+                    }
+                }
+            }
+
+            let result = [];
+            let w = calorieLimit;
+            for (let i = n; i > 0; i--) {
+                if (dp[i][w] !== dp[i - 1][w]) {
+                    result.push(items[i - 1]);
+                    w -= items[i - 1].calories;
+                }
+            }
+
+            if (veganOnly && result.some(item => !item.isVegan)) {
+                alert("No valid vegan meal combination found.");
+                return [];
+            }
+
+            return result;
+        }
+
+        function submitData() {
+            const calorieLimit = parseInt(document.getElementById("calorieLimit").value);
+            const veganOnly = document.getElementById("veganOnly").checked;
+
+            foodItems = [];
+            const inputs = document.querySelectorAll("#foodItemsContainer input");
+            for (let i = 0; i < inputs.length; i += 4) {
+                const foodItem = new FoodItem(
+                    inputs[i].value,
+                    parseInt(inputs[i + 1].value),
+                    inputs[i + 2].checked,
+                    parseInt(inputs[i + 3].value)
+                );
+                foodItems.push(foodItem);
+            }
+
+            const selectedMeals = knapsack(foodItems, calorieLimit, veganOnly);
+
+            const mealResultsContainer = document.getElementById("meal-results");
+            if (selectedMeals.length > 0) {
+                let totalProtein = selectedMeals.reduce((sum, item) => sum + item.protein, 0);
+                let resultHTML = `<h3>Optimal Meal Combination</h3>
+                                  <p><strong>Total Protein:</strong> ${totalProtein}g</p>`;
+                selectedMeals.forEach(item => {
+                    resultHTML += `<div class="result-item">
+                        <p><strong>${item.name}</strong></p>
+                        <p>Calories: ${item.calories}, Protein: ${item.protein}g</p>
+                    </div>`;
+                });
+                mealResultsContainer.innerHTML = resultHTML;
+            } else {
+                mealResultsContainer.innerHTML = "<p>No valid combination found within the given constraints.</p>";
+            }
+        }
+    </script>
+</body>
+</html>

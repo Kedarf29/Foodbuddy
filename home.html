@@ -1,0 +1,146 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h1 { text-align: center; color: #333; }
+        #search-bar { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        #search-button { padding: 10px 20px; background-color: #007bff; color: #ffffff; border: none; border-radius: 4px; cursor: pointer; }
+        #search-button:hover { background-color: #0056b3; }
+        #results { margin-top: 20px; }
+        .food-item { border-bottom: 1px solid #ddd; padding: 10px 0; }
+        h3 { margin: 0; color: #007bff; }
+        p { margin: 5px 0; color: #555; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Search for Food Items</h1>
+        <input type="text" id="search-bar" placeholder="Enter food item name (e.g., Kurkure)" required>
+        <button type="button" id="search-button">Search</button>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        document.getElementById("search-button").addEventListener("click", () => {
+            const query = document.getElementById("search-bar").value.trim().toLowerCase();
+            const resultsContainer = document.getElementById("results");
+            resultsContainer.innerHTML = "<p>Loading...</p>";
+
+            // Fetch the CSV file
+            fetch("food_data.csv")
+                .then(response => response.text())
+                .then(csvText => {
+                    const rows = csvText.split("\n").map(row => row.split(","));
+                    const headers = rows[0];
+                    const items = rows.slice(1);
+                    resultsContainer.innerHTML = ""; // Clear loading text
+
+                    let found = false;
+                    items.forEach(item => {
+                        const foodName = item[0].toLowerCase();
+                        if (foodName === query) {
+                            found = true;
+                            const foodDetails = headers.map((header, index) => `<p><strong>${header}:</strong> ${item[index] || "N/A"}</p>`).join("");
+                            resultsContainer.innerHTML += `<div class="food-item"><h3>${item[0]}</h3>${foodDetails}</div>`;
+                        }
+                    });
+
+                    if (!found) {
+                        resultsContainer.innerHTML = `<p>No results found for "${query}".</p>`;
+                    }
+                })
+                .catch(error => {
+                    console.error("Error loading CSV:", error);
+                    resultsContainer.innerHTML = "<p>Failed to load food data. Please try again later.</p>";
+                });
+        });
+    </script>
+</body>
+</html> -->
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Search</title>
+    <link rel="stylesheet" href="style2.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Search for Food Items</h1>
+        <input type="text" id="search-bar" placeholder="Enter food item name (e.g., Kurkure)" required>
+        <button type="button" id="search-button">Search</button>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        document.getElementById("search-button").addEventListener("click", () => {
+            const query = document.getElementById("search-bar").value.trim().toLowerCase();
+            const resultsContainer = document.getElementById("results");
+            resultsContainer.innerHTML = "<p>Loading...</p>";
+
+            // Fetch the CSV file
+            fetch("food_data.csv")
+                .then(response => response.text())
+                .then(csvText => {
+                    const rows = csvText.split("\n").map(row => row.split(","));
+                    const headers = rows[0];
+                    const items = rows.slice(1);
+                    resultsContainer.innerHTML = ""; // Clear loading text
+
+                    let found = false;
+                    items.forEach(item => {
+                        const foodName = item[0].toLowerCase();
+                        if (foodName.includes(query)) {  // Change from strict equality to includes for partial matching
+                            found = true;
+                            const foodDetails = headers.map((header, index) => {
+                                let detail = item[index] || "N/A";
+                                
+                                // Highlight specific ingredients like antioxidants, emulsifiers, preservatives, etc.
+                                const highlightTerms = ["antioxidant", "emulsifier", "preservative"];
+                                highlightTerms.forEach(term => {
+                                    const regex = new RegExp(`(${term})`, 'gi');
+                                    detail = detail.replace(regex, `<span class="highlight">$1</span>`);
+                                });
+                                
+                                return `<p><strong>${header}:</strong> ${detail}</p>`;
+                            }).join("");
+                            resultsContainer.innerHTML += `<div class="food-item"><h3>${item[0]}</h3>${foodDetails}</div>`;
+                        }
+                    });
+
+                    if (!found) {
+                        resultsContainer.innerHTML = `<p>No results found for "${query}".</p>`;
+                    }
+                })
+                .catch(error => {
+                    console.error("Error loading CSV:", error);
+                    resultsContainer.innerHTML = "<p>Failed to load food data. Please try again later.</p>";
+                });
+        });
+    </script>
+</body>
+</html>

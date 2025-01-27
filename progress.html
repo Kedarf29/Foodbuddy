@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Progress Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .goal-section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .month-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .month-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .month-btn:hover {
+            background-color: #e9ecef;
+        }
+
+        .month-btn.active {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        .year-display {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 0 15px;
+        }
+
+        .achievements-section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .goal-info {
+            display: flex;
+            gap: 20px;
+        }
+
+        .goal-item {
+            background-color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .cheat-day {
+            background-color: #ffeaa7 !important;
+            border: 2px dashed #fdcb6e !important;
+        }
+
+        .cheat-indicator {
+            font-size: 11px;
+            color: #d35400;
+            font-weight: bold;
+            margin-top: 3px;
+        }
+
+        .daily-markers {
+            display: flex;
+            gap: 5px;
+            margin-top: 5px;
+            font-size: 12px;
+            flex-direction: column;
+        }
+
+        .marker {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 2px 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .marker.completed {
+            color: #27ae60;
+            background-color: #ebfaf0;
+        }
+
+        .marker.pending {
+            color: #95a5a6;
+            background-color: #f8f9fa;
+        }
+
+        .checkbox {
+            width: 16px;
+            height: 16px;
+            border: 2px solid currentColor;
+            border-radius: 3px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .completed .checkbox::after {
+            content: "✓";
+            font-weight: bold;
+        }
+
+        .sunday-cheat {
+            color: #e67e22;
+            font-size: 12px;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 2px 5px;
+            border-radius: 4px;
+            background-color: #ffeee0;
+            cursor: pointer;
+        }
+
+        .sunday-cheat.completed {
+            background-color: #ffd5a3;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .weekday {
+            text-align: center;
+            font-weight: bold;
+            padding: 10px;
+            background-color: #27ae60;
+            color: white;
+            border-radius: 5px;
+        }
+
+        .day {
+            min-height: 120px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: #fff;
+        }
+
+        .day:hover {
+            background-color: #f8f9fa;
+            cursor: pointer;
+        }
+
+        .day-number {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .food-entry {
+            font-size: 12px;
+            color: #27ae60;
+            margin: 2px 0;
+        }
+
+        .exercise-entry {
+            font-size: 12px;
+            color: #e74c3c;
+            margin: 2px 0;
+        }
+
+        .add-entry {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #3498db;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            margin: 50px auto;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: #95a5a6;
+            color: white;
+            margin-right: 10px;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+        }
+
+        .food-color {
+            background-color: #27ae60;
+        }
+
+        .exercise-color {
+            background-color: #e74c3c;
+        }
+
+        .cheat-color {
+            background-color: #ffeaa7;
+            border: 2px dashed #fdcb6e;
+        }
+
+        .achievement-title {
+            font-size: 18px;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .progress-bars {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .progress-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background-color: #eee;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-fill.exercise {
+            background-color: #27ae60;
+        }
+
+        .progress-fill.diet {
+            background-color: #27ae60;
+        }
+
+        .progress-fill.cheat {
+            background-color: #e67e22;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Health Progress Tracker</h1>
+        
+        <div class="month-selector">
+            <button class="btn btn-secondary" onclick="previousYear()">◀</button>
+            <span class="year-display" id="currentYear">2025</span>
+            <button class="btn btn-secondary" onclick="nextYear()">▶</button>
+        </div>
+        
+        <div class="month-selector" id="monthSelector">
+            <!-- Months will be populated by JavaScript -->
+        </div>
+        
+        <div class="goal-section">
+            <div class="goal-info">
+                <div class="goal-item">
+                    <strong>Monthly Weight Goal:</strong>
+                    <span id="weightGoal">Not Set</span>
+                </div>
+                <div class="goal-item">
+                    <strong>Cheat Days Left:</strong>
+                    <span id="cheatDaysLeft">6</span>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="setWeightGoal()">Set Weight Goal</button>
+        </div>
+
+        <div class="achievements-section">
+            <h2 class="achievement-title">Monthly Achievements</h2>
+            <div class="progress-bars">
+                <div class="progress-item">
+                    <div class="progress-label">
+                        <span>💪 Exercise Progress</span>
+                        <span id="exercisePercentage">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill exercise" id="exerciseProgress" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="progress-item">
+                    <div class="progress-label">
+                        <span>🥗 Diet Progress</span>
+                        <span id="dietPercentage">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill diet" id="dietProgress" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="progress-item">
+                    <div class="progress-label">
+                        <span>🍕 Cheat Meals</span>
+                        <span id="cheatPercentage">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill cheat" id="cheatProgress" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color food-color"></div>
+                <span>Food Entry</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color exercise-color"></div>
+                <span>Exercise Entry</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color cheat-color"></div>
+                <span>Cheat Day</span>
+            </div>
+        </div>
+
+        <div class="calendar">
+            <div class="weekday">Sun</div>
+            <div class="weekday">Mon</div>
+            <div class="weekday">Tue</div>
+            <div class="weekday">Wed</div>
+            <div class="weekday">Thu</div>
+            <div class="weekday">Fri</div>
+            <div class="weekday">Sat</div>
+            <!-- Calendar days will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <div class="add-entry" onclick="openModal()">+</div>
+
+    <div class="modal" id="entryModal">
+        <div class="modal-content">
+            <h2>Add New Entry</h2>
+            <form id="entryForm">
+                <div class="form-group">
+                    <label for="entryDate">Date</label>
+                    <input type="date" id="entryDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="entryType">Entry Type</label>
+                    <select id="entryType" required>
+                        <option value="food">Food</option>
+                        <option value="exercise">Exercise</option>
+                        <option value="cheat">Cheat Day</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="entryDescription">Description</label>
+                    <textarea id="entryDescription" rows="3" required></textarea>
+                </div>
+                <div style="text-align: right;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+        let monthData = {};
+        
+        // Initialize data structure for all months
+        function initializeMonthData() {
+            const months = Array.from({length: 12}, (_, i) => i);
+            const years = [currentYear - 1, currentYear, currentYear + 1];
+            
+            years.forEach(year => {
+                monthData[year] = {};
+                months.forEach(month => {
+                    monthData[year][month] = {
+                        weightGoal: null,
+                        cheatDaysLeft: 6,
+                        entries: {},
+                        completed: {
+                            exercise: new Set(),
+                            diet: new Set(),
+                            cheat: new Set()
+                        }
+                    };
+                });
+            });
+        }
+
+        function previousYear() {
+            currentYear--;
+            updateYearDisplay();
+            generateMonthSelector();
+            generateCalendar();
+            updateAchievements();
+        }
+
+        function nextYear() {
+            currentYear++;
+            updateYearDisplay();
+            generateMonthSelector();
+            generateCalendar();
+            updateAchievements();
+        }
+
+        function updateYearDisplay() {
+            document.getElementById('currentYear').textContent = currentYear;
+        }
+
+        function generateMonthSelector() {
+            const monthNames = [
+                'January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'
+            ];
+            
+            const monthSelector = document.getElementById('monthSelector');
+            monthSelector.innerHTML = '';
+            
+            monthNames.forEach((month, index) => {
+                const btn = document.createElement('button');
+                btn.className = `month-btn ${index === currentMonth ? 'active' : ''}`;
+                btn.textContent = month.substring(0, 3);
+                btn.onclick = () => selectMonth(index);
+                monthSelector.appendChild(btn);
+            });
+        }
+
+        function selectMonth(month) {
+            currentMonth = month;
+            document.querySelectorAll('.month-btn').forEach((btn, index) => {
+                btn.classList.toggle('active', index === month);
+            });
+            generateCalendar();
+            updateAchievements();
+        }
+
+        function getCurrentMonthData() {
+            if (!monthData[currentYear]) {
+                monthData[currentYear] = {};
+            }
+            if (!monthData[currentYear][currentMonth]) {
+                monthData[currentYear][currentMonth] = {
+                    weightGoal: null,
+                    cheatDaysLeft: 6,
+                    entries: {},
+                    completed: {
+                        exercise: new Set(),
+                        diet: new Set(),
+                        cheat: new Set()
+                    }
+                };
+            }
+            return monthData[currentYear][currentMonth];
+        }
+
+        function setWeightGoal() {
+            const newGoal = prompt("Enter your weight goal for this month (in kg):");
+            if (newGoal && !isNaN(newGoal)) {
+                const monthDataCurrent = getCurrentMonthData();
+                monthDataCurrent.weightGoal = parseFloat(newGoal);
+                document.getElementById('weightGoal').textContent = monthDataCurrent.weightGoal + " kg";
+            }
+        }
+
+        function generateCalendar() {
+            const calendar = document.querySelector('.calendar');
+            calendar.innerHTML = '';
+            
+            // Add weekday headers
+            const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            weekdays.forEach(day => {
+                const weekdayDiv = document.createElement('div');
+                weekdayDiv.className = 'weekday';
+                weekdayDiv.textContent = day;
+                calendar.appendChild(weekdayDiv);
+            });
+
+            const firstDay = new Date(currentYear, currentMonth, 1);
+            const lastDay = new Date(currentYear, currentMonth + 1, 0);
+            const monthDataCurrent = getCurrentMonthData();
+            
+            // Update weight goal display
+            document.getElementById('weightGoal').textContent = 
+                monthDataCurrent.weightGoal ? monthDataCurrent.weightGoal + " kg" : "Not Set";
+            document.getElementById('cheatDaysLeft').textContent = monthDataCurrent.cheatDaysLeft;
+
+            // Add empty cells for days before the first day of the month
+            for (let i = 0; i < firstDay.getDay(); i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'day';
+                calendar.appendChild(emptyDay);
+            }
+
+            // Add days of the month
+            for (let i = 1; i <= lastDay.getDate(); i++) {
+                const day = document.createElement('div');
+                day.className = 'day';
+                const currentDate = new Date(currentYear, currentMonth, i);
+                const isSunday = currentDate.getDay() === 0;
+                const dateKey = `${i}`;
+                
+                let markersHtml = '';
+                if (isSunday) {
+                    markersHtml = `
+                        <div class="daily-markers">
+                            <div class="sunday-cheat ${monthDataCurrent.completed.cheat.has(dateKey) ? 'completed' : 'pending'}" 
+                                 data-date="${i}" data-type="cheat">
+                                <div class="checkbox"></div>
+                                <span>🍕 Cheat Meal</span>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    markersHtml = `
+                        <div class="daily-markers">
+                            <div class="marker ${monthDataCurrent.completed.exercise.has(dateKey) ? 'completed' : 'pending'}" 
+                                 data-date="${i}" data-type="exercise">
+                                <div class="checkbox"></div>
+                                <span>💪 Exercise</span>
+                            </div>
+                            <div class="marker ${monthDataCurrent.completed.diet.has(dateKey) ? 'completed' : 'pending'}" 
+                                 data-date="${i}" data-type="diet">
+                                <div class="checkbox"></div>
+                                <span>🥗 Diet</span>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                day.innerHTML = `
+                    <div class="day-number">${i}</div>
+                    ${markersHtml}
+                    <div class="entries"></div>
+                `;
+
+                // Restore entries if they exist
+                if (monthDataCurrent.entries[dateKey]) {
+                    const entriesDiv = day.querySelector('.entries');
+                    monthDataCurrent.entries[dateKey].forEach(entry => {
+                        const entryDiv = document.createElement('div');
+                        entryDiv.className = entry.className;
+                        entryDiv.textContent = entry.text;
+                        entriesDiv.appendChild(entryDiv);
+                    });
+                }
+
+                calendar.appendChild(day);
+            }
+            
+            addMarkerClickListeners();
+        }
+
+        function addMarkerClickListeners() {
+            document.querySelectorAll('.marker, .sunday-cheat').forEach(marker => {
+                marker.addEventListener('click', function() {
+                    const isCompleted = this.classList.contains('completed');
+                    const date = this.getAttribute('data-date');
+                    const type = this.getAttribute('data-type');
+                    const monthDataCurrent = getCurrentMonthData();
+
+                    if (isCompleted) {
+                        this.classList.remove('completed');
+                        this.classList.add('pending');
+                        monthDataCurrent.completed[type].delete(date);
+                    } else {
+                        this.classList.remove('pending');
+                        this.classList.add('completed');
+                        monthDataCurrent.completed[type].add(date);
+                    }
+                    updateAchievements();
+                });
+            });
+        }
+
+        function updateAchievements() {
+            const monthDataCurrent = getCurrentMonthData();
+            const days = document.querySelectorAll('.day');
+            const totalWeekdays = Array.from(days).filter(day => 
+                day.querySelector('.day-number') && 
+                !day.querySelector('.sunday-cheat')
+            ).length;
+            const totalSundays = Array.from(days).filter(day => 
+                day.querySelector('.sunday-cheat')
+            ).length;
+
+            // Calculate percentages based on completed sets
+            const exercisePercentage = Math.round((monthDataCurrent.completed.exercise.size / totalWeekdays) * 100);
+            const dietPercentage = Math.round((monthDataCurrent.completed.diet.size / totalWeekdays) * 100);
+            const cheatPercentage = Math.round((monthDataCurrent.completed.cheat.size / totalSundays) * 100);
+
+            // Update progress bars
+            document.getElementById('exerciseProgress').style.width = `${exercisePercentage}%`;
+            document.getElementById('dietProgress').style.width = `${dietPercentage}%`;
+            document.getElementById('cheatProgress').style.width = `${cheatPercentage}%`;
+
+            // Update percentage text
+            document.getElementById('exercisePercentage').textContent = `${exercisePercentage}%`;
+            document.getElementById('dietPercentage').textContent = `${dietPercentage}%`;
+            document.getElementById('cheatPercentage').textContent = `${cheatPercentage}%`;
+        }
+
+        function openModal() {
+            if (!getCurrentMonthData().weightGoal) {
+                alert("Please set your monthly weight goal first!");
+                return;
+            }
+            document.getElementById('entryModal').style.display = 'block';
+            document.getElementById('entryDate').valueAsDate = new Date();
+        }
+
+        function closeModal() {
+            document.getElementById('entryModal').style.display = 'none';
+        }
+
+        document.getElementById('entryForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const date = new Date(document.getElementById('entryDate').value);
+            const type = document.getElementById('entryType').value;
+            const description = document.getElementById('entryDescription').value;
+            const monthDataCurrent = getCurrentMonthData();
+            
+            if (type === 'cheat') {
+                if (monthDataCurrent.cheatDaysLeft <= 0) {
+                    alert("You've reached the maximum number of cheat days (6) for this month!");
+                    return;
+                }
+                
+                const days = document.querySelectorAll('.day');
+                const targetDay = Array.from(days).find(day => {
+                    const dayNumber = day.querySelector('.day-number');
+                    return dayNumber && parseInt(dayNumber.textContent) === date.getDate();
+                });
+                
+                if (targetDay && !targetDay.classList.contains('cheat-day')) {
+                    targetDay.classList.add('cheat-day');
+                    const cheatMarker = targetDay.querySelector('[data-type="cheat"]');
+                    if (cheatMarker) {
+                        cheatMarker.classList.remove('pending');
+                        cheatMarker.classList.add('completed');
+                        monthDataCurrent.completed.cheat.add(date.getDate().toString());
+                    }
+                    
+                    const cheatIndicator = document.createElement('div');
+                    cheatIndicator.className = 'cheat-indicator';
+                    cheatIndicator.textContent = '🍕 Extra Cheat Day';
+                    targetDay.querySelector('.entries').appendChild(cheatIndicator);
+                    
+                    monthDataCurrent.cheatDaysLeft--;
+                    document.getElementById('cheatDaysLeft').textContent = monthDataCurrent.cheatDaysLeft;
+
+                    // Store the entry
+                    const dateKey = date.getDate().toString();
+                    if (!monthDataCurrent.entries[dateKey]) {
+                        monthDataCurrent.entries[dateKey] = [];
+                    }
+                    monthDataCurrent.entries[dateKey].push({
+                        className: 'cheat-indicator',
+                        text: '🍕 Extra Cheat Day'
+                    });
+                }
+            } else {
+                const days = document.querySelectorAll('.day');
+                const targetDay = Array.from(days).find(day => {
+                    const dayNumber = day.querySelector('.day-number');
+                    return dayNumber && parseInt(dayNumber.textContent) === date.getDate();
+                });
+
+                if (targetDay) {
+                    // Update the corresponding marker
+                    if (type === 'food') {
+                        const dietMarker = targetDay.querySelector('[data-type="diet"]');
+                        if (dietMarker) {
+                            dietMarker.classList.remove('pending');
+                            dietMarker.classList.add('completed');
+                            monthDataCurrent.completed.diet.add(date.getDate().toString());
+                        }
+                    } else if (type === 'exercise') {
+                        const exerciseMarker = targetDay.querySelector('[data-type="exercise"]');
+                        if (exerciseMarker) {
+                            exerciseMarker.classList.remove('pending');
+                            exerciseMarker.classList.add('completed');
+                            monthDataCurrent.completed.exercise.add(date.getDate().toString());
+                        }
+                    }
+
+                    const entry = document.createElement('div');
+                    entry.className = type === 'food' ? 'food-entry' : 'exercise-entry';
+                    entry.textContent = description;
+                    targetDay.querySelector('.entries').appendChild(entry);
+
+                    // Store the entry
+                    const dateKey = date.getDate().toString();
+                    if (!monthDataCurrent.entries[dateKey]) {
+                        monthDataCurrent.entries[dateKey] = [];
+                    }
+                    monthDataCurrent.entries[dateKey].push({
+                        className: type === 'food' ? 'food-entry' : 'exercise-entry',
+                        text: description
+                    });
+                }
+            }
+
+            closeModal();
+            document.getElementById('entryForm').reset();
+            updateAchievements();
+        });
+
+        // Initialize calendar and add click listeners when page loads
+        window.addEventListener('load', () => {
+            initializeMonthData();
+            generateMonthSelector();
+            generateCalendar();
+            updateAchievements();
+        });
+    </script>
+</body>
+</html>

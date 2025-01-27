@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Closet.io</title>
+    <link rel = "stylesheet" href = "profile.css">
+    <link rel = "icon" href="images/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="containers">
+        <div class="navbar">
+            <div class="logos">
+                FoodBuddy
+            </div>
+            <div class="nav">
+                <!-- <a class = "nb p" href = "dashboard.html">Home</a> -->
+                <form action="/closet" method="POST"></form>
+                <a class = "nb s" href = "progress.html">Progress</a>
+                <a class = "nb s" href = "home.html">Search</a>
+                <a  class = "nb q" href = "mealplanner.html" type="closet" id="closet">Meal Planner</a>
+                <!-- <a class = "nb r" href = "">Lookbook</a> -->
+                <a class = "nb s" href = "https://www.zeptonow.com/">Grocerries</a>
+                <a class = "nb t" href = "profile.html">Profile</a>
+
+
+            </div>
+        </div>
+        <div class="content">
+            <div class="head">Welcome !</div>
+            <div class="dsbrd">
+                <div class="avatar">
+                    <img src="images/cint.png" id="profile_pic" >
+                </div>
+                <div class="lk"> 
+                    <label for="input-file">update profile</label>
+                    <form action="/" method="POST" encType="multipart/form-data">  <input type="file" accept="image/jpeg,image/png,image/jpg" id="input-file"></form>
+                    <a href="closet.html" ><span class ="hn"><span class ="as">Upload your Clothes</span></a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        let profilepic = document.getElementById("profile_pic");
+        let inputfile = document.getElementById("input-file");
+        inputfile.onchange=function(){
+            profilepic.src = URL.createObjectURL(inputfile.files[0]);
+            console.log(inputfile.files[0]);
+        }
+        //let name = document.getElementById("name").innerHTML="f_name";
+    </script>
+</body>
+</html>
